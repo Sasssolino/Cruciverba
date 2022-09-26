@@ -74,6 +74,9 @@ namespace Cruciverba
         {
             _buttons = new List<List<Button>>();
 
+            if (_content == null)
+                return;
+
             CreateGridOfButtons(_content);
         }
 
@@ -99,8 +102,6 @@ namespace Cruciverba
                 _buttons.Add(line);
             }
         }
-
-
 
         int GetLenghtOfLine(string text)
         {
@@ -141,15 +142,88 @@ namespace Cruciverba
 
             return button;
         }
-    }
 
-    public Tuple<int ,int> Franco(string word)
-    {
-        for(int i = 0; i < _buttons.Count; i++)
+        public (bool Found, int x, int y, PossibleDirections dir) SearchWord(string word)
         {
+            for(int i = 0; i < _buttons.Count; i++)
+            {
+                var sos = SearchWordInLine(i, word);
 
+                if (sos.Found)
+                    return sos;
+            }
+    
+            return (false, -1, -1, PossibleDirections.LeftToRight);
         }
 
-        return (-1, -1);
+        public (bool Found, int x, int y, PossibleDirections dir) SearchWordInLine(int line, string word)
+        {
+            for (int i = 0; i < _buttons[line].Count; i++)
+            {
+                if (!IsWordFitInSpace(_buttons[line].Count - i, word.Length))
+                    continue;
+
+                var sos = ControlHorizontalWord(line, i, word);
+
+                if (sos)
+                    return (true, line, i, PossibleDirections.LeftToRight);
+            }
+
+            return (false, -1, -1, PossibleDirections.LeftToRight);
+        }
+
+        public bool ControlHorizontalWord(int line, int column, string word)
+        {
+            foreach (var item in word)
+            {
+                var charOfButton = char.Parse(_buttons[line][column].Content + "");
+
+                if (!IsCharOfWordSameAsButtonContent(item, charOfButton))
+                    return false;
+
+                column++;
+            }
+
+            return true;
+        }
+
+        public bool IsCharOfWordSameAsButtonContent(char buttonContent, char wordChar)
+        {
+            return (buttonContent == wordChar) ? true : false;
+        }
+
+        public bool IsWordFitInSpace(int spaceGap, int worldLength)
+        {
+            if (worldLength > spaceGap)
+                return false;
+
+            return true;
+        }
+
+        private void btnSeachWord_Click(object sender, RoutedEventArgs e)
+        {
+            var word = GetWord(txtSeachWord).ToUpper();
+
+            var result = SearchWord(word);
+
+            if (!result.Found)
+            {
+                MessageBox.Show("la parola non e' stata trovata.");
+                return;
+            }
+
+            PrintWord(result.x, result.y, word.Length);
+        }
+
+        public void PrintWord(int line, int column, int lengthWord)
+        {
+            for (int i = 0; i < lengthWord; i++)
+                _buttons[line][column + i].Background = new SolidColorBrush(Colors.Yellow);
+        }
+
+        public string GetWord(TextBox textBox)
+        {
+            return textBox.Text;
+        }
     }
 }

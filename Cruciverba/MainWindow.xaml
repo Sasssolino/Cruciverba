@@ -8,8 +8,12 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Button Name="btnChooseFile" Content="Choose a file" HorizontalAlignment="Left" Margin="47,71,0,0" VerticalAlignment="Top" Click="btnChooseFile_Click"/>
-        <Grid Name="grdButtons"  Margin="323,77,102,74" />
+
         <Button x:Name="btnSpawnButtons" Content="Show grid" HorizontalAlignment="Left" Margin="47,109,0,0" VerticalAlignment="Top" Click="btnSpawnButtons_Click"/>
+        <Grid Name="grdButtons"  Margin="323,77,-156,-258" />
+
+        <TextBox x:Name="txtSeachWord" HorizontalAlignment="Left" Margin="119,248,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="btnSeachWord" Content="Button" HorizontalAlignment="Left" Margin="278,248,0,0" VerticalAlignment="Top" Click="btnSeachWord_Click"/>
 
     </Grid>
 </Window>
