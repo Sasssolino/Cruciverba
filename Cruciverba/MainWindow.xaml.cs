@@ -160,46 +160,35 @@ namespace Cruciverba
         {
             for(int i = 0; i < _buttons.Count; i++)
             {
-                var sos = SearchWordInLine(i, word);
 
-                if (sos.Found)
-                    return sos;
+                // Todo Metodsss
+                foreach(var item in _actions)
+                {
+                    var sos = SearchWordInDirection(i, word, item.Key);
+
+                    if (sos.Found)
+                        return sos;
+                }
             }
     
             return (false, -1, -1, PossibleDirections.LeftToRight);
         }
 
-        public (bool Found, int x, int y, PossibleDirections dir) SearchWordInLine(int line, string word)
-        {
-            for (int i = 0; i < _buttons[line].Count; i++)
-            {
-                if (!IsWordFitInSpace(_buttons[line].Count - i, word.Length))
-                    continue;
-
-                var sos = ControlHorizontalWord(line, i, word);
-
-                if (sos)
-                    return (true, line, i, PossibleDirections.LeftToRight);
-            }
-
-            return (false, -1, -1, PossibleDirections.LeftToRight);
-        }
-
-        public (bool Found, int x, int y, PossibleDirections dir) SearchWordDirection(PossibleDirections dir, int line, string word)
+        public (bool Found, int x, int y, PossibleDirections dir) SearchWordInLineDirection(int line, string word, PossibleDirections dir)
         {
             for (int i = 0; i < _buttons[line].Count; i++)
             {
                 // Todo fare un altro dictionary per capire se c'e' abbastanza spazio
-                if (!IsWordFitInSpace(_buttons[line].Count - i, word.Length))
+                if (!IsWordFitInSpaceDirection(i, line, word.Length, dir))
                     continue;
 
                 var sos = ControlHorizontalWord(line, i, word);
 
                 if (sos)
-                    return (true, line, i, PossibleDirections.LeftToRight);
+                    return (true, line, i, dir);
             }
 
-            return (false, -1, -1, PossibleDirections.LeftToRight);
+            return (false, -1, -1, dir);
         }
 
         public bool ControlWordDirection(PossibleDirections dir, int line, int column, string word)
@@ -244,6 +233,16 @@ namespace Cruciverba
 
         public bool IsWordFitInSpace(int spaceGap, int worldLength)
         {
+            if (worldLength > spaceGap)
+                return false;
+
+            return true;
+        }
+        public bool IsWordFitInSpaceDirection(int column, int line, int worldLength, PossibleDirections dir)
+        {
+            // Todo, Da finire
+            if (_actions[dir].Column )
+
             if (worldLength > spaceGap)
                 return false;
 
