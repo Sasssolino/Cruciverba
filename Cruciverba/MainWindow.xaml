@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Cruciverba"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
     <Grid>
         <Button Name="btnChooseFile" Content="Choose a file" HorizontalAlignment="Left" Margin="47,71,0,0" VerticalAlignment="Top" Click="btnChooseFile_Click"/>
 

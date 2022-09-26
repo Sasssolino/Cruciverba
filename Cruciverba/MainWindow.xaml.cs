@@ -31,7 +31,20 @@ namespace Cruciverba
 
         string _content;
         List<List<Button>> _buttons;
+        public Dictionary<PossibleDirections, (Func<int, int> Line, Func<int, int> Column)> _actions;
 
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            _actions = new Dictionary<PossibleDirections, (Func<int, int> , Func<int, int>)>();
+
+            _actions.Add(PossibleDirections.LeftToRight, (Increment, null));
+            _actions.Add(PossibleDirections.RightToLeft, (Increment, null));
+        }
+
+
+        public int Increment(int number) => ++number;
+
+        public int Decrement(int numer) => --numer;
 
         private void btnChooseFile_Click(object sender, RoutedEventArgs e)
         {
@@ -172,6 +185,43 @@ namespace Cruciverba
             return (false, -1, -1, PossibleDirections.LeftToRight);
         }
 
+        public (bool Found, int x, int y, PossibleDirections dir) SearchWordDirection(PossibleDirections dir, int line, string word)
+        {
+            for (int i = 0; i < _buttons[line].Count; i++)
+            {
+                // Todo fare un altro dictionary per capire se c'e' abbastanza spazio
+                if (!IsWordFitInSpace(_buttons[line].Count - i, word.Length))
+                    continue;
+
+                var sos = ControlHorizontalWord(line, i, word);
+
+                if (sos)
+                    return (true, line, i, PossibleDirections.LeftToRight);
+            }
+
+            return (false, -1, -1, PossibleDirections.LeftToRight);
+        }
+
+        public bool ControlWordDirection(PossibleDirections dir, int line, int column, string word)
+        {
+            foreach (var item in word)
+            {
+                var charOfButton = char.Parse(_buttons[line][column].Content + "");
+
+                if (!IsCharOfWordSameAsButtonContent(item, charOfButton))
+                    return false;
+
+                column = _actions[dir].Column(column);
+
+                var sos = _actions[dir].Line;
+
+                if (sos != null)
+                    line = sos(line);
+            }
+
+            return true;
+        }
+
         public bool ControlHorizontalWord(int line, int column, string word)
         {
             foreach (var item in word)
@@ -225,5 +275,6 @@ namespace Cruciverba
         {
             return textBox.Text;
         }
+
     }
 }

@@ -8,6 +8,9 @@ namespace Cruciverba
 {
     public enum PossibleDirections
     {
-        LeftToRight, TopToBottom, TopLeftToBottomRight
+        LeftToRight, RightToLeft,
+        TopToBottom, BottomToTop,
+        TopLeftToBottomRight, BottomRightToTopLeft,
+        TopRightToBottomLeft, BotomLeftToTopRight
     }
 }
