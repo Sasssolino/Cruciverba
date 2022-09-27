@@ -17,11 +17,15 @@ using System.Windows.Shapes;
 
 //Paolo Magnani 4i 09/24/2022
 
+// Piccolo problema di logica di base, mi sa che ora come ora sto riciclando tutta la matrice per il numero di metodi che ho, ma penso che la soluzione migliore sia
+// quella di ciclare solo una volta e poi ogni volta controllare per ogni possibilita'
+
 namespace Cruciverba
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -38,7 +42,16 @@ namespace Cruciverba
             _actions = new Dictionary<PossibleDirections, (Func<int, int> , Func<int, int>)>();
 
             _actions.Add(PossibleDirections.LeftToRight, (Increment, null));
-            _actions.Add(PossibleDirections.RightToLeft, (Increment, null));
+            _actions.Add(PossibleDirections.RightToLeft, (Decrement, null));
+
+            _actions.Add(PossibleDirections.TopToBottom, (null, Increment));
+            _actions.Add(PossibleDirections.BottomToTop, (null, Decrement));
+
+            _actions.Add(PossibleDirections.TopLeftToBottomRight, (Increment, Increment));
+            _actions.Add(PossibleDirections.BottomRightToTopLeft, (Decrement, Decrement));
+
+            _actions.Add(PossibleDirections.TopRightToBottomLeft, (Increment, Decrement));
+            _actions.Add(PossibleDirections.BotomLeftToTopRight, (Decrement, Increment));
         }
 
 
@@ -155,43 +168,54 @@ namespace Cruciverba
 
             return button;
         }
-
-        public (bool Found, int x, int y, PossibleDirections dir) SearchWord(string word)
+        
+        public (PossibleDirections dir, int x, int y) SearchWord(string word)
         {
             for(int i = 0; i < _buttons.Count; i++)
             {
+                var risp = SearchWordInLineDirections(i, word);
 
-                // Todo Metodsss
-                foreach(var item in _actions)
-                {
-                    var sos = SearchWordInDirection(i, word, item.Key);
-
-                    if (sos.Found)
-                        return sos;
-                }
+                if (risp.Direction != PossibleDirections.NotFound)
+                    return risp;
             }
     
-            return (false, -1, -1, PossibleDirections.LeftToRight);
+            return (PossibleDirections.NotFound, - 1, -1);
         }
 
-        public (bool Found, int x, int y, PossibleDirections dir) SearchWordInLineDirection(int line, string word, PossibleDirections dir)
+        public (PossibleDirections Direction, int x, int y) SearchWordInLineDirections(int line, string word)
         {
             for (int i = 0; i < _buttons[line].Count; i++)
             {
                 // Todo fare un altro dictionary per capire se c'e' abbastanza spazio
-                if (!IsWordFitInSpaceDirection(i, line, word.Length, dir))
+                // anzi , forse ancora meglio controllare se incrementa o decrementa per poi capire cosa bisogna fare.
+                // Ricoedarsi che nel dictionary tra le possibili opzioni possiamo trovare anche il null, quindi gestirlo
+
+                var sos = ControlWordEveryDirections(line, i, word);
+
+                if (sos != PossibleDirections.NotFound)
+                    return (sos, line, i);
+            }
+
+            return (PossibleDirections.NotFound, -1, -1);
+        }
+
+        public PossibleDirections ControlWordEveryDirections(int line, int column, string word)
+        {
+            foreach(var item in _actions)
+            {
+                if (!IsWordFitInSpaceDirection(line, column, word.Length, item.Key))
                     continue;
 
-                var sos = ControlHorizontalWord(line, i, word);
+                var sos = ControlWordDirection(line, column, word, item.Key);
 
                 if (sos)
-                    return (true, line, i, dir);
+                    return item.Key;
             }
 
-            return (false, -1, -1, dir);
+            return PossibleDirections.NotFound;
         }
 
-        public bool ControlWordDirection(PossibleDirections dir, int line, int column, string word)
+        public bool ControlWordDirection(int line, int column, string word, PossibleDirections direction)
         {
             foreach (var item in word)
             {
@@ -200,27 +224,16 @@ namespace Cruciverba
                 if (!IsCharOfWordSameAsButtonContent(item, charOfButton))
                     return false;
 
-                column = _actions[dir].Column(column);
+                // A sto punto posso anche non usare la variabile di lavoro, ma usare direttamente dictionary
+                var actions = _actions[direction];
 
-                var sos = _actions[dir].Line;
-
-                if (sos != null)
-                    line = sos(line);
-            }
-
-            return true;
-        }
-
-        public bool ControlHorizontalWord(int line, int column, string word)
-        {
-            foreach (var item in word)
-            {
-                var charOfButton = char.Parse(_buttons[line][column].Content + "");
-
-                if (!IsCharOfWordSameAsButtonContent(item, charOfButton))
-                    return false;
-
-                column++;
+                // Per farlo come diceva il prof dovrei usare solo un metodo e
+                // quan non fare questo ma chiamare il valore del dictionary
+                if(actions.Column != null)
+                    column = actions.Column(column);
+                
+                if (actions.Line != null)
+                    line = actions.Line(line);
             }
 
             return true;
@@ -231,19 +244,29 @@ namespace Cruciverba
             return (buttonContent == wordChar) ? true : false;
         }
 
-        public bool IsWordFitInSpace(int spaceGap, int worldLength)
-        {
-            if (worldLength > spaceGap)
-                return false;
-
-            return true;
-        }
         public bool IsWordFitInSpaceDirection(int column, int line, int worldLength, PossibleDirections dir)
         {
-            // Todo, Da finire
-            if (_actions[dir].Column )
+            var risp = IsThereEnoughtSpace(_actions[dir].Column, column);
 
-            if (worldLength > spaceGap)
+            if (!risp)
+                return false;
+
+            risp = IsThereEnoughtSpace(_actions[dir].Line, line);
+
+            return risp;
+        }
+
+        // Questo funziona solo se nelle funzioni di incremento non viene usato un * o /
+        private bool IsThereEnoughtSpace(Func<int, int> func, int nPos) 
+        {
+            if (func == null)
+                return true;
+
+            var sos = func(0);
+            //var space = (sos * (nPos + 1)) + _buttons.Count;
+            var space = (sos * (nPos + 1));
+
+            if (space < 0 || space > _buttons.Count)
                 return false;
 
             return true;
@@ -255,25 +278,34 @@ namespace Cruciverba
 
             var result = SearchWord(word);
 
-            if (!result.Found)
+            if (result.dir == PossibleDirections.NotFound)
             {
                 MessageBox.Show("la parola non e' stata trovata.");
                 return;
             }
 
-            PrintWord(result.x, result.y, word.Length);
+            PrintWord(result.x, result.y, word.Length, result.dir);
         }
 
-        public void PrintWord(int line, int column, int lengthWord)
+        public void PrintWord(int line, int column, int lengthWord, PossibleDirections dir)
         {
             for (int i = 0; i < lengthWord; i++)
-                _buttons[line][column + i].Background = new SolidColorBrush(Colors.Yellow);
+            {
+                _buttons[line][column].Background = new SolidColorBrush(Colors.Yellow);
+
+                var sos = _actions[dir];
+
+                if (sos.Column != null)
+                    column = sos.Column(column);
+                
+                if (sos.Line != null)
+                    line = sos.Line(line);
+            }
         }
 
         public string GetWord(TextBox textBox)
         {
             return textBox.Text;
         }
-
     }
 }

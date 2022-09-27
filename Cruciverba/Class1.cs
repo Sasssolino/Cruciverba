@@ -11,6 +11,7 @@ namespace Cruciverba
         LeftToRight, RightToLeft,
         TopToBottom, BottomToTop,
         TopLeftToBottomRight, BottomRightToTopLeft,
-        TopRightToBottomLeft, BotomLeftToTopRight
+        TopRightToBottomLeft, BotomLeftToTopRight,
+        NotFound
     }
 }
