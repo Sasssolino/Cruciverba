@@ -41,11 +41,11 @@ namespace Cruciverba
         {
             _actions = new Dictionary<PossibleDirections, (Func<int, int> , Func<int, int>)>();
 
-            _actions.Add(PossibleDirections.LeftToRight, (Increment, null));
-            _actions.Add(PossibleDirections.RightToLeft, (Decrement, null));
+            _actions.Add(PossibleDirections.LeftToRight, (null, Increment));
+            _actions.Add(PossibleDirections.RightToLeft, (null, Decrement));
 
-            _actions.Add(PossibleDirections.TopToBottom, (null, Increment));
-            _actions.Add(PossibleDirections.BottomToTop, (null, Decrement));
+            _actions.Add(PossibleDirections.TopToBottom, (Increment, null));
+            _actions.Add(PossibleDirections.BottomToTop, (Decrement, null));
 
             _actions.Add(PossibleDirections.TopLeftToBottomRight, (Increment, Increment));
             _actions.Add(PossibleDirections.BottomRightToTopLeft, (Decrement, Decrement));
@@ -246,25 +246,25 @@ namespace Cruciverba
 
         public bool IsWordFitInSpaceDirection(int column, int line, int worldLength, PossibleDirections dir)
         {
-            var risp = IsThereEnoughtSpace(_actions[dir].Column, column);
+            var risp = IsThereEnoughtSpace(_actions[dir].Column, column, worldLength);
 
             if (!risp)
                 return false;
 
-            risp = IsThereEnoughtSpace(_actions[dir].Line, line);
+            risp = IsThereEnoughtSpace(_actions[dir].Line, line, worldLength);
 
             return risp;
         }
 
         // Questo funziona solo se nelle funzioni di incremento non viene usato un * o /
-        private bool IsThereEnoughtSpace(Func<int, int> func, int nPos) 
+        private bool IsThereEnoughtSpace(Func<int, int> func, int nPos, int strLength) 
         {
             if (func == null)
                 return true;
 
             var sos = func(0);
             //var space = (sos * (nPos + 1)) + _buttons.Count;
-            var space = (sos * (nPos + 1));
+            var space = (sos * strLength + nPos + 1);
 
             if (space < 0 || space > _buttons.Count)
                 return false;
